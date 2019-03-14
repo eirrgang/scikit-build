@@ -30,6 +30,16 @@ jobs:
           }
         displayName: Display env. variables
 
+      - powershell: |
+          # Update PATH removing directory with compiler executables (e.g gcc.exe)
+          $path = [System.Environment]::GetEnvironmentVariable('PATH', 'Machine')
+          [System.Collections.ArrayList]$paths = $path.Split(';')
+          $paths.Remove('C:\Program Files\Git\mingw64\bin')
+          $paths.Remove('C:\ProgramData\Chocolatey\bin')
+          $paths.Remove('C:\Strawberry\c\bin')
+          [System.Environment]::SetEnvironmentVariable('PATH', $paths -join ';', 'Machine')
+        displayName: Update PATH removing directory with compiler executables (e.g gcc.exe)
+
       - task: UsePythonVersion@0
         inputs:
           versionSpec: '$(python.version)'
@@ -40,17 +50,6 @@ jobs:
           python -m pip install -U scikit-ci scikit-ci-addons
           python -m ci_addons --install ../addons
         displayName: Prerequisites
-
-      - powershell: |
-          # Update PATH removing directory with compiler executables (e.g gcc.exe)
-          $path = [System.Environment]::GetEnvironmentVariable('PATH')
-          [System.Collections.ArrayList]$paths = $path.Split(';')
-          $paths.Remove('C:\Program Files\Git\mingw64\bin')
-          $paths.Remove('C:\ProgramData\Chocolatey\bin')
-          $paths.Remove('C:\Strawberry\c\bin')
-          [System.Environment]::SetEnvironmentVariable('PATH', $paths -join ';')
-          python -m ci before_install
-        displayName: Update environment
 
       - script: python -m ci install
         displayName: Install
